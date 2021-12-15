@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.github.elenterius.combat_commons.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8.4",
+  "refmap": "combat_commons.refmap.json",
+  "mixins": [
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
