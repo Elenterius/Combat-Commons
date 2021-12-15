@@ -1,5 +1,5 @@
 # Combat-Commons
-Combat Commons is a library mod for Forge Minecraft that provides modifiable attack reach and other utilities related combat.
+Combat Commons is a library mod for Forge Minecraft that provides modifiable attack reach and other utilities related combat for other mod developers.
 
 ## Why
 At the moment many mods provide their own solution to exteding the players attack reach, in most cases this causes incompatibilities due to conflicting mixins.
