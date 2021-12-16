@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = "${mc_version}-${mod_version}-forge"
+version = "${mod_version}-${mc_version}-forge"
 group = 'com.github.elenterius.combat_commons'
 archivesBaseName = 'combat_commons'
 
@@ -157,7 +157,11 @@ jar.finalizedBy('reobfJar')
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            from components.java
+            artifact jar
         }
+    }
+    repositories {
+//        mavenLocal()
+        maven { url "file:///${project.projectDir}/mcmodsrepo" }
     }
 }
