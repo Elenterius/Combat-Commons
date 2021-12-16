@@ -1,0 +1,10 @@
+{
+  "itemGroup.test_combat_commons": "[TEST] Combat Commons",
+
+  "item.test_combat_commons.very_short_sword": "[TEST] very small attack reach",
+  "item.test_combat_commons.short_sword": "[TEST] small attack reach with large block reach",
+  "item.test_combat_commons.long_sword": "[TEST] large attack reach",
+  "item.test_combat_commons.very_long_sword": "[TEST] very large attack reach",
+  "item.test_combat_commons.ethereal_sword": "[TEST-ETHEREAL] vanilla attack reach with zero block reach",
+  "item.test_combat_commons.ethereal_pickaxe": "[TEST-ETHEREAL] zero attack reach with large block reach"
+}

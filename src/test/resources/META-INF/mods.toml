@@ -1,0 +1,14 @@
+modLoader = "javafml"
+loaderVersion = "[36,)"
+license = "MIT License"
+
+[[mods]]
+modId = "test_combat_commons"
+version = "1"
+
+[[dependencies.test_combat_commons]]
+modId = "combat_commons"
+mandatory = true
+versionRange = "[0.0.1,)"
+ordering = "AFTER"
+side = "BOTH"
