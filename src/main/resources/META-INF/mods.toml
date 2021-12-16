@@ -17,7 +17,7 @@ displayName = "Combat-Commons"
 # A URL to query for updates for this mod. See the JSON update specification https://mcforge.readthedocs.io/en/latest/gettingstarted/autoupdate/
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 displayURL = "https://www.curseforge.com/minecraft/mc-mods/combat-commons" #optional
-logoFile = "examplemod.png"
+logoFile = "logo.png"
 #credits="Thanks for this example mod goes to Java"  #optional
 authors = "Elenterius"
 description = '''This is a long form description of the mod. You can write whatever you want here'''

@@ -5,8 +5,12 @@
   "minVersion": "0.8.4",
   "refmap": "combat_commons.refmap.json",
   "mixins": [
+    "RayTraceContextAccessor",
+    "attack_reach.PlayerEntityMixin",
+    "attack_reach.ServerPlayNetHandlerMixin"
   ],
   "client": [
+    "attack_reach.GameRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
