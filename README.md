@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    implementation implementation 'com.github.Elenterius:Combat-Commons:Tag'
+    implementation 'com.github.Elenterius:Combat-Commons:Tag'
 }
 ```
 
