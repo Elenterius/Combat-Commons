@@ -2,6 +2,7 @@
 @ParametersAreNonnullByDefault
 package com.github.elenterius.combat_commons.test;
 
-import mcp.MethodsReturnNonnullByDefault;
+
+import net.minecraft.MethodsReturnNonnullByDefault;
 
 import javax.annotation.ParametersAreNonnullByDefault;

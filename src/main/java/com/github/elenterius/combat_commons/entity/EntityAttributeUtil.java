@@ -1,9 +1,9 @@
 package com.github.elenterius.combat_commons.entity;
 
-import net.minecraft.client.multiplayer.PlayerController;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.attributes.Attribute;
-import net.minecraft.entity.ai.attributes.ModifiableAttributeInstance;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.ForgeMod;
@@ -25,14 +25,14 @@ public final class EntityAttributeUtil {
 	public static double getValueOrDefault(@Nullable LivingEntity entity, Attribute attribute) {
 		if (entity == null) return attribute.getDefaultValue();
 
-		ModifiableAttributeInstance instance = entity.getAttribute(attribute);
+		AttributeInstance instance = entity.getAttribute(attribute);
 		return instance != null ? instance.getValue() : attribute.getDefaultValue();
 	}
 
 	public static double getValueOrElse(@Nullable LivingEntity entity, Attribute attribute, double other) {
 		if (entity == null) return other;
 
-		ModifiableAttributeInstance instance = entity.getAttribute(attribute);
+		AttributeInstance instance = entity.getAttribute(attribute);
 		return instance != null ? instance.getValue() : other;
 	}
 
@@ -52,8 +52,8 @@ public final class EntityAttributeUtil {
 	}
 
 	@OnlyIn(Dist.CLIENT)
-	public static float getBlockReachDist(PlayerController playerController) {
-		return playerController.getPickRange(); //pehkui applies a mixin to PlayerController#getPickRange()
+	public static float getBlockReachDist(MultiPlayerGameMode gameMode) {
+		return gameMode.getPickRange(); //pehkui applies a mixin to PlayerController#getPickRange()
 	}
 
 	public static double getBlockReachDist(@Nullable LivingEntity player, boolean isCreative) {

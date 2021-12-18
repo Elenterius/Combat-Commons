@@ -1,13 +1,13 @@
 {
   "required": true,
   "package": "com.github.elenterius.combat_commons.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8.4",
   "refmap": "combat_commons.refmap.json",
   "mixins": [
-    "RayTraceContextAccessor",
+    "ClipContextAccessor",
     "attack_reach.PlayerEntityMixin",
-    "attack_reach.ServerPlayNetHandlerMixin"
+    "attack_reach.ServerGamePacketListenerMixin"
   ],
   "client": [
     "attack_reach.GameRendererMixin"

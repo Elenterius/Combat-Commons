@@ -2,19 +2,19 @@ package com.github.elenterius.combat_commons.mixin.attack_reach;
 
 import com.github.elenterius.combat_commons.compat.pehkui.PehkuiCompat;
 import com.github.elenterius.combat_commons.entity.EntityAttributeUtil;
-import com.github.elenterius.combat_commons.item.IRayTraceModeProvider;
-import com.github.elenterius.combat_commons.utils.RayTraceMode;
+import com.github.elenterius.combat_commons.item.IClipShapeProvider;
+import com.github.elenterius.combat_commons.utils.ClipShape;
 import com.github.elenterius.combat_commons.utils.RayTraceUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,7 +49,7 @@ public abstract class GameRendererMixin {
 	@Unique
 	private double maxAttackReachDistSq;
 
-	@Inject(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/profiler/IProfiler;push(Ljava/lang/String;)V"), locals = LocalCapture.CAPTURE_FAILHARD)
+	@Inject(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/profiling/ProfilerFiller;push(Ljava/lang/String;)V"), locals = LocalCapture.CAPTURE_FAILHARD)
 	private void combatCommons_CaptureCameraEntity(float partialTicks, CallbackInfo ci, Entity entity) {
 		camera = entity; //not null at this point
 
@@ -57,8 +57,8 @@ public abstract class GameRendererMixin {
 		maxAttackReachDist = scale * EntityAttributeUtil.getAttackReachDist(minecraft.player, Objects.requireNonNull(minecraft.gameMode).hasFarPickRange());
 	}
 
-	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;pick(DFZ)Lnet/minecraft/util/math/RayTraceResult;"))
-	private RayTraceResult combatCommons_PickBlockProxy(Entity instance, double rayTraceDistance, float partialTicks, boolean rayTraceFluids) {
+	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;pick(DFZ)Lnet/minecraft/world/phys/HitResult;"))
+	private HitResult combatCommons_PickBlockProxy(Entity instance, double rayTraceDistance, float partialTicks, boolean rayTraceFluids) {
 		//block reach value is already changed (pehkui applies a mixin to PlayerController#getPickRange() when not in creative mode)
 		// 0.9 * block_reach vs block_reach - 0.5
 		final float blockReachDist = Objects.requireNonNull(minecraft.gameMode).getPickRange();
@@ -66,20 +66,19 @@ public abstract class GameRendererMixin {
 		if (blockReachDist > 0) {
 
 			ItemStack heldStack = Objects.requireNonNull(minecraft.player).getMainHandItem();
-			if (heldStack.getItem() instanceof IRayTraceModeProvider) {
-				IRayTraceModeProvider provider = (IRayTraceModeProvider) heldStack.getItem();
-				RayTraceContext.FluidMode fluidMode = provider.getRayTraceFluidModeForPickBlock(heldStack, minecraft.player);
-				return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, RayTraceMode.OUTLINE, fluidMode);
+			if (heldStack.getItem() instanceof IClipShapeProvider provider) {
+				ClipContext.Fluid fluid = provider.getRayTraceFluidModeForPickBlock(heldStack, minecraft.player);
+				return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, ClipShape.OUTLINE, fluid);
 			}
 
-			return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, RayTraceMode.OUTLINE, rayTraceFluids);
+			return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, ClipShape.OUTLINE, rayTraceFluids);
 		}
 		else {
 			//prevent the hitting of any block
 			//fixes forge bug where block reach <= 0 returns a hit and not a miss
-			Vector3d eyePosition = camera.getEyePosition(partialTicks);
-			Vector3d lookVec = camera.getViewVector(partialTicks);
-			return BlockRayTraceResult.miss(eyePosition, Direction.getNearest(lookVec.x, lookVec.y, lookVec.z), new BlockPos(eyePosition));
+			Vec3 eyePosition = camera.getEyePosition(partialTicks);
+			Vec3 lookVec = camera.getViewVector(partialTicks);
+			return BlockHitResult.miss(eyePosition, Direction.getNearest(lookVec.x, lookVec.y, lookVec.z), new BlockPos(eyePosition));
 		}
 	}
 
@@ -89,17 +88,16 @@ public abstract class GameRendererMixin {
 	 * @param rayStartPos vector3d = entity.getEyePosition(pPartialTicks)
 	 * @return maxAttackReachDistanceSquare
 	 */
-	@Redirect(method = "pick", at = @At(value = "INVOKE", ordinal = 0, target = "Lnet/minecraft/util/math/vector/Vector3d;distanceToSqr(Lnet/minecraft/util/math/vector/Vector3d;)D"))
-	private double combatCommons_GetModifiedAttackReachProxy(Vector3d hitPosition, Vector3d rayStartPos, float partialTicks) {
+	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D", ordinal = 0))
+	private double combatCommons_GetModifiedAttackReachProxy(Vec3 hitPosition, Vec3 rayStartPos, float partialTicks) {
 		// We ignore the previous block raytrace hit result and perform a second raytrace (independent of block reach)
 		// using the attack reach distance to determine if the targeted entity is not obstructed by blocks (prevent attacks through walls)
 
-		RayTraceResult hitResult;
+		HitResult hitResult;
 		ItemStack heldStack = Objects.requireNonNull(minecraft.player).getMainHandItem();
-		if (heldStack.getItem() instanceof IRayTraceModeProvider) {
-			IRayTraceModeProvider provider = (IRayTraceModeProvider) heldStack.getItem();
-			RayTraceMode rayTraceMode = provider.getRayTraceModeForPickEntity(heldStack, minecraft.player);
-			RayTraceContext.FluidMode fluidMode = provider.getRayTraceFluidModeForPickEntity(heldStack, minecraft.player);
+		if (heldStack.getItem() instanceof IClipShapeProvider provider) {
+			ClipShape clipShape = provider.getRayTraceModeForPickEntity(heldStack, minecraft.player);
+			ClipContext.Fluid fluid = provider.getRayTraceFluidModeForPickEntity(heldStack, minecraft.player);
 
 			/*
 			 * In COLLIDER BlockMode:
@@ -107,13 +105,13 @@ public abstract class GameRendererMixin {
 			 * >>> This is proper behavior because block reach determines what blocks can be interacted with,
 			 * >>> so any blocks outside the block reach shouldn't be able to be targeted & interacted with when the attack ray trace is done
 			 * */
-			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, rayTraceMode, fluidMode);
+			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, clipShape, fluid);
 		}
 		else {
-			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, RayTraceMode.OUTLINE, false);
+			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, ClipShape.OUTLINE, false);
 		}
 
-		if (hitResult.getType() != RayTraceResult.Type.MISS) {
+		if (hitResult.getType() != HitResult.Type.MISS) {
 			//we hit a wall, reduce the ray distance for the EntityRayTrace --> blocks attacks through walls (block)
 			double v = hitResult.getLocation().distanceToSqr(rayStartPos);
 			maxAttackReachDistSq = v;
@@ -128,23 +126,23 @@ public abstract class GameRendererMixin {
 	/**
 	 * @return start position of the ray
 	 */
-	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/vector/Vector3d;add(DDD)Lnet/minecraft/util/math/vector/Vector3d;"))
-	private Vector3d combatCommons_VectorAddProxy(Vector3d instance, double pX, double pY, double pZ) {
+	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;add(DDD)Lnet/minecraft/world/phys/Vec3;"))
+	private Vec3 combatCommons_VectorAddProxy(Vec3 instance, double pX, double pY, double pZ) {
 		return instance.add(camera.getViewVector(1f).scale(maxAttackReachDist));
 	}
 
-	@ModifyArg(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/vector/Vector3d;scale(D)Lnet/minecraft/util/math/vector/Vector3d;"), index = 0)
+	@ModifyArg(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;scale(D)Lnet/minecraft/world/phys/Vec3;"), index = 0)
 	private double combatCommons_AdjustVectorScale(double d0) {
 		return maxAttackReachDist;
 	}
 
-	@ModifyArg(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/projectile/ProjectileHelper;getEntityHitResult(Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/vector/Vector3d;Lnet/minecraft/util/math/vector/Vector3d;Lnet/minecraft/util/math/AxisAlignedBB;Ljava/util/function/Predicate;D)Lnet/minecraft/util/math/EntityRayTraceResult;"), index = 5)
+	@ModifyArg(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/projectile/ProjectileUtil;getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;"), index = 5)
 	private double combatCommons_AdjustMaxDistance(double d0) {
 		return maxAttackReachDistSq; //fixes unstable variable >> sometimes the value isn't successfully changed by the previous combatCommons_GetModifiedAttackReachProxy mixin, LOL??
 	}
 
-	@Redirect(method = "pick", at = @At(value = "INVOKE", ordinal = 1, target = "Lnet/minecraft/util/math/vector/Vector3d;distanceToSqr(Lnet/minecraft/util/math/vector/Vector3d;)D"))
-	private double combatCommons_DistanceToSqrProxy(Vector3d instance, Vector3d hitVec) {
+	@Redirect(method = "pick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/Vec3;distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D", ordinal = 1))
+	private double combatCommons_DistanceToSqrProxy(Vec3 instance, Vec3 hitVec) {
 		double distSq = instance.distanceToSqr(hitVec);
 		double maxReachDistSq = maxAttackReachDist * maxAttackReachDist;
 		return distSq > maxReachDistSq ? Double.MAX_VALUE : Double.MIN_VALUE;

@@ -4,25 +4,25 @@ import com.github.elenterius.combat_commons.CombatCommonsMod;
 import com.github.elenterius.combat_commons.compat.pehkui.PehkuiCompat;
 import com.github.elenterius.combat_commons.entity.EntityAttributeUtil;
 import com.github.elenterius.combat_commons.utils.RayTraceUtil;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.network.play.ServerPlayNetHandler;
-import net.minecraft.network.play.client.CUseEntityPacket;
+import net.minecraft.network.protocol.game.ServerboundInteractPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(ServerPlayNetHandler.class)
-public abstract class ServerPlayNetHandlerMixin {
+@Mixin(ServerGamePacketListenerImpl.class)
+public abstract class ServerGamePacketListenerMixin {
 
 	/**
 	 * @author Elenterius
 	 */
 	@Unique
-	private double getMaxReachDist(ServerPlayerEntity player, CUseEntityPacket.Action action) {
+	private double getMaxReachDist(ServerPlayer player, ServerboundInteractPacket packet) {
 		float scale = Math.max(PehkuiCompat.getPlayerReachScale(player), 1f);
-		if (action == CUseEntityPacket.Action.ATTACK) {
+		if (packet.action == ServerboundInteractPacket.ATTACK_ACTION) {
 			return scale * EntityAttributeUtil.getAttackReachDist(player, player.isCreative());
 		}
 		else {
@@ -35,10 +35,10 @@ public abstract class ServerPlayNetHandlerMixin {
 	 *
 	 * @author Elenterius
 	 */
-	@Redirect(method = "handleInteract", require = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/ServerPlayerEntity;distanceToSqr(Lnet/minecraft/entity/Entity;)D"))
-	private double combatCommons_distanceToSqProxy(ServerPlayerEntity player, Entity targetOfClient, CUseEntityPacket packet) {
+	@Redirect(method = "handleInteract", require = 0, at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"))
+	private double combatCommons_distanceToSqProxy(ServerPlayer player, Entity targetOfClient, ServerboundInteractPacket packet) {
 
-		final double maxReachDist = getMaxReachDist(player, packet.getAction());
+		final double maxReachDist = getMaxReachDist(player, packet);
 		final double distSqToBBox = RayTraceUtil.distanceSqToInflatedBoundingBox(player, targetOfClient, maxReachDist);
 		final double maxReachDistSq = maxReachDist * maxReachDist;
 
@@ -47,10 +47,10 @@ public abstract class ServerPlayNetHandlerMixin {
 		//For testing spawn a large slime and attack in survival mode or with reduced attack reach (e.g. /summon minecraft:slime ~ ~ ~ {Size: 10})
 		CombatCommonsMod.LOGGER.debug(() -> {
 			double distSqToPosition = player.distanceToSqr(targetOfClient);
-			return String.format(
-					"\nmaxReach[dist: %f, distSq: %f]\n" +
-							"|-> old >> distSqToPosition[%f] is within maxReachDistSq: %s\n" +
-							"|-> new >>     distSqToBBox[%f] is within maxReachDistSq: %s",
+			return String.format("""
+							maxReach[dist: %f, distSq: %f]
+							|-> old >> distSqToPosition[%f] is within maxReachDistSq: %s
+							|-> new >>     distSqToBBox[%f] is within maxReachDistSq: %s""",
 					maxReachDist, maxReachDistSq, distSqToPosition, distSqToPosition < maxReachDistSq, distSqToBBox, distSqToBBox < maxReachDistSq
 			);
 		});

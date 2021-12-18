@@ -1,12 +1,10 @@
 package com.github.elenterius.combat_commons.test;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.NonNullList;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -33,8 +31,8 @@ public class TestMod {
 	public static final Logger LOGGER = LogManager.getLogger("Combat-Commons/Test");
 
 	public static final List<Supplier<List<ItemStack>>> ITEM_GROUP_ITEM_SUPPLIERS = new ArrayList<>();
-	public static final ItemGroup ITEM_GROUP = new ItemGroup(MOD_ID) {
-		@OnlyIn(Dist.CLIENT)
+	public static final CreativeModeTab ITEM_GROUP = new CreativeModeTab(MOD_ID) {
+
 		public ItemStack makeIcon() {
 			return new ItemStack(Items.RED_BANNER);
 		}

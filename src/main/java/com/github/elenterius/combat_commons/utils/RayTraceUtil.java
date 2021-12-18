@@ -1,16 +1,16 @@
 package com.github.elenterius.combat_commons.utils;
 
-import com.github.elenterius.combat_commons.mixin.RayTraceContextAccessor;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
+import com.github.elenterius.combat_commons.mixin.ClipContextAccessor;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -19,26 +19,26 @@ public final class RayTraceUtil {
 
 	private RayTraceUtil() {}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, boolean traceFluids) {
-		return pickBlock(entity, partialTicks, rayDist, blockMode, traceFluids ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
+	public static HitResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipContext.Block blockMode, boolean hitFluid) {
+		return pickBlock(entity, partialTicks, rayDist, blockMode, hitFluid ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, RayTraceContext.FluidMode fluidMode) {
-		Vector3d startPos = entity.getEyePosition(partialTicks);
-		Vector3d lookVec = entity.getViewVector(partialTicks);
-		Vector3d endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
-		return entity.level.clip(new RayTraceContext(startPos, endPos, blockMode, fluidMode, entity));
+	public static HitResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipContext.Block blockShape, ClipContext.Fluid fluid) {
+		Vec3 startPos = entity.getEyePosition(partialTicks);
+		Vec3 lookVec = entity.getViewVector(partialTicks);
+		Vec3 endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
+		return entity.level.clip(new ClipContext(startPos, endPos, blockShape, fluid, entity));
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceMode rayTraceMode, boolean traceFluids) {
-		return pickBlock(entity, partialTicks, rayDist, rayTraceMode, traceFluids ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
+	public static HitResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipShape clipShape, boolean hitFluid) {
+		return pickBlock(entity, partialTicks, rayDist, clipShape, hitFluid ? ClipContext.Fluid.ANY : ClipContext.Fluid.NONE);
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceMode rayTraceMode, RayTraceContext.FluidMode fluidMode) {
-		Vector3d startPos = entity.getEyePosition(partialTicks);
-		Vector3d lookVec = entity.getViewVector(partialTicks);
-		Vector3d endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
-		return entity.level.clip(rayTraceMode.createContext(startPos, endPos, fluidMode, entity));
+	public static HitResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipShape clipShape, ClipContext.Fluid fluid) {
+		Vec3 startPos = entity.getEyePosition(partialTicks);
+		Vec3 lookVec = entity.getViewVector(partialTicks);
+		Vec3 endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
+		return entity.level.clip(clipShape.createContext(startPos, endPos, fluid, entity));
 	}
 
 	/**
@@ -56,14 +56,14 @@ public final class RayTraceUtil {
 	 */
 	public static double distanceSqToBoundingBox(Entity source, Entity target, float inflate, double maxDist) {
 		//create "ray"
-		Vector3d startPos = source.getEyePosition(1f);
-		Vector3d direction = target.position().subtract(startPos).normalize();
-		Vector3d endPos = startPos.add(direction.scale(maxDist));
+		Vec3 startPos = source.getEyePosition(1f);
+		Vec3 direction = target.position().subtract(startPos).normalize();
+		Vec3 endPos = startPos.add(direction.scale(maxDist));
 
-		AxisAlignedBB aabb = inflate != 0f ? target.getBoundingBox().inflate(inflate) : target.getBoundingBox();
+		AABB aabb = inflate != 0f ? target.getBoundingBox().inflate(inflate) : target.getBoundingBox();
 
 		//tries to get the "intersection point" of the aabb with the ray
-		Optional<Vector3d> optional = aabb.clip(startPos, endPos);
+		Optional<Vec3> optional = aabb.clip(startPos, endPos);
 		if (aabb.contains(startPos)) {
 			return startPos.distanceToSqr(optional.orElse(startPos));
 		}
@@ -78,17 +78,17 @@ public final class RayTraceUtil {
 	 * RayTraceContext that will return empty shapes when the collider shape is empty, else the outline shape is returned.
 	 * This allows us to go through tall grass and plants while avoiding the 1.5 block tall colliders of fences and walls
 	 */
-	static class EmptyColliderOrOutlineRayTraceContext extends RayTraceContext {
+	static class EmptyColliderOrOutlineClipContext extends ClipContext {
 
-		protected final ISelectionContext collisionContext;
+		protected final CollisionContext collisionContext;
 
-		public EmptyColliderOrOutlineRayTraceContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
-			super(from, to, BlockMode.OUTLINE, fluidMode, entity);
-			collisionContext = ((RayTraceContextAccessor) this).getCollisionContext();
+		public EmptyColliderOrOutlineClipContext(Vec3 from, Vec3 to, Fluid fluidMode, @Nullable Entity entity) {
+			super(from, to, Block.OUTLINE, fluidMode, entity);
+			collisionContext = ((ClipContextAccessor) this).getCollisionContext();
 		}
 
 		@Override
-		public VoxelShape getBlockShape(BlockState blockState, IBlockReader level, BlockPos pos) {
+		public VoxelShape getBlockShape(BlockState blockState, BlockGetter level, BlockPos pos) {
 			VoxelShape collisionShape = blockState.getCollisionShape(level, pos, collisionContext);
 			return collisionShape.isEmpty() ? collisionShape : super.getBlockShape(blockState, level, pos);
 		}
@@ -98,17 +98,17 @@ public final class RayTraceUtil {
 	 * RayTraceContext that will return empty shapes when the visual shape is empty, else the outline shape is returned.
 	 * This allows us to go through glass while avoiding the 1.5 block tall colliders of fences and walls
 	 */
-	static class EmptyVisualOrOutlineRayTraceContext extends RayTraceContext {
+	static class EmptyVisualOrOutlineClipContext extends ClipContext {
 
-		protected final ISelectionContext collisionContext;
+		protected final CollisionContext collisionContext;
 
-		public EmptyVisualOrOutlineRayTraceContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
-			super(from, to, BlockMode.OUTLINE, fluidMode, entity);
-			collisionContext = ((RayTraceContextAccessor) this).getCollisionContext();
+		public EmptyVisualOrOutlineClipContext(Vec3 from, Vec3 to, Fluid fluidMode, @Nullable Entity entity) {
+			super(from, to, Block.OUTLINE, fluidMode, entity);
+			collisionContext = ((ClipContextAccessor) this).getCollisionContext();
 		}
 
 		@Override
-		public VoxelShape getBlockShape(BlockState blockState, IBlockReader level, BlockPos pos) {
+		public VoxelShape getBlockShape(BlockState blockState, BlockGetter level, BlockPos pos) {
 			VoxelShape visualShape = blockState.getVisualShape(level, pos, collisionContext);
 			return visualShape.isEmpty() ? visualShape : super.getBlockShape(blockState, level, pos);
 		}

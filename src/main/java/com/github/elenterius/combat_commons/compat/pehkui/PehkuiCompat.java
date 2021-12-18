@@ -1,7 +1,7 @@
 package com.github.elenterius.combat_commons.compat.pehkui;
 
 import com.github.elenterius.combat_commons.CombatCommonsMod;
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.minecraftforge.fml.ModContainer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.IModInfo;

@@ -1,6 +1,6 @@
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
-package com.github.elenterius.combat_commons.utils;
+package com.github.elenterius.combat_commons.item;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

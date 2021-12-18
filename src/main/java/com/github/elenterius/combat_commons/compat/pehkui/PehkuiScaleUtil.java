@@ -1,6 +1,6 @@
 package com.github.elenterius.combat_commons.compat.pehkui;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import virtuoel.pehkui.util.ScaleUtils;
 
 /**
