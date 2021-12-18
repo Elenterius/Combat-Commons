@@ -23,7 +23,7 @@ version = "${mod_version}-${mc_version}-forge"
 group = 'com.github.elenterius.combat_commons'
 archivesBaseName = 'combat_commons'
 
-//Gradle 7 & FG v5.1+ are compatible with JDK 16 but for minecraft versions pre-1.17 we have to target Java 8
+//Gradle 7.2+ & FG v5.1+ are compatible with JDK 17 but for minecraft pre-1.17 we have to target Java 8
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
@@ -127,7 +127,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 
-    implementation fg.deobf("com.github.Virtuoel:Pehkui:3.0.0-forge")
+    implementation fg.deobf("com.github.Virtuoel:Pehkui:${pehkui_version}")
 
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
