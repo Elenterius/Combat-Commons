@@ -1,8 +1,8 @@
 package com.github.elenterius.combat_commons.test;
 
 import com.github.elenterius.combat_commons.entity.EntityAttributeUtil;
-import com.github.elenterius.combat_commons.item.IRayTraceModeProvider;
-import com.github.elenterius.combat_commons.utils.RayTraceMode;
+import com.github.elenterius.combat_commons.item.IClipShapeProvider;
+import com.github.elenterius.combat_commons.utils.ClipShape;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.BlockState;
@@ -12,7 +12,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.fml.RegistryObject;
@@ -51,8 +50,8 @@ public final class AttackReachStuff {
 		}
 
 		@Override
-		public RayTraceMode getRayTraceModeForPickEntity(ItemStack stack, PlayerEntity player) {
-			return RayTraceMode.EMPTY_COLLIDER_OR_OUTLINE;
+		public ClipShape getClipShapeForPickEntity(ItemStack stack, PlayerEntity player) {
+			return ClipShape.EMPTY_COLLIDER_OR_OUTLINE;
 		}
 	});
 
@@ -64,8 +63,8 @@ public final class AttackReachStuff {
 		}
 
 		@Override
-		public RayTraceMode getRayTraceModeForPickEntity(ItemStack stack, PlayerEntity player) {
-			return RayTraceMode.EMPTY_VISUAL_OR_OUTLINE;
+		public ClipShape getClipShapeForPickEntity(ItemStack stack, PlayerEntity player) {
+			return ClipShape.EMPTY_VISUAL_OR_OUTLINE;
 		}
 	});
 	//pickaxe that sets attack reach to zero
@@ -74,7 +73,7 @@ public final class AttackReachStuff {
 
 	public static final UUID ATTACK_REACH_UUID = UUID.fromString("9bc1ee60-2d06-40d2-aeb5-1292cc416f72");
 
-	static class TestSwordItem extends SwordItem implements IRayTraceModeProvider {
+	static class TestSwordItem extends SwordItem implements IClipShapeProvider {
 
 		final Lazy<Multimap<Attribute, AttributeModifier>> lazyAttributeModifiers;
 

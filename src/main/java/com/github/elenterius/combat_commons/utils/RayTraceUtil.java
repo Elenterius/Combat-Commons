@@ -19,26 +19,26 @@ public final class RayTraceUtil {
 
 	private RayTraceUtil() {}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, boolean traceFluids) {
-		return pickBlock(entity, partialTicks, rayDist, blockMode, traceFluids ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
+	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, boolean hitFluid) {
+		return pickBlock(entity, partialTicks, rayDist, blockMode, hitFluid ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, RayTraceContext.FluidMode fluidMode) {
+	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceContext.BlockMode blockMode, RayTraceContext.FluidMode fluid) {
 		Vector3d startPos = entity.getEyePosition(partialTicks);
 		Vector3d lookVec = entity.getViewVector(partialTicks);
 		Vector3d endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
-		return entity.level.clip(new RayTraceContext(startPos, endPos, blockMode, fluidMode, entity));
+		return entity.level.clip(new RayTraceContext(startPos, endPos, blockMode, fluid, entity));
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceMode rayTraceMode, boolean traceFluids) {
-		return pickBlock(entity, partialTicks, rayDist, rayTraceMode, traceFluids ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
+	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipShape clipShape, boolean hitFluid) {
+		return pickBlock(entity, partialTicks, rayDist, clipShape, hitFluid ? RayTraceContext.FluidMode.ANY : RayTraceContext.FluidMode.NONE);
 	}
 
-	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, RayTraceMode rayTraceMode, RayTraceContext.FluidMode fluidMode) {
+	public static RayTraceResult pickBlock(Entity entity, float partialTicks, double rayDist, ClipShape clipShape, RayTraceContext.FluidMode fluid) {
 		Vector3d startPos = entity.getEyePosition(partialTicks);
 		Vector3d lookVec = entity.getViewVector(partialTicks);
 		Vector3d endPos = startPos.add(lookVec.x * rayDist, lookVec.y * rayDist, lookVec.z * rayDist);
-		return entity.level.clip(rayTraceMode.createContext(startPos, endPos, fluidMode, entity));
+		return entity.level.clip(clipShape.createContext(startPos, endPos, fluid, entity));
 	}
 
 	/**
@@ -78,11 +78,11 @@ public final class RayTraceUtil {
 	 * RayTraceContext that will return empty shapes when the collider shape is empty, else the outline shape is returned.
 	 * This allows us to go through tall grass and plants while avoiding the 1.5 block tall colliders of fences and walls
 	 */
-	static class EmptyColliderOrOutlineRayTraceContext extends RayTraceContext {
+	static class EmptyColliderOrOutlineClipContext extends RayTraceContext {
 
 		protected final ISelectionContext collisionContext;
 
-		public EmptyColliderOrOutlineRayTraceContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
+		public EmptyColliderOrOutlineClipContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
 			super(from, to, BlockMode.OUTLINE, fluidMode, entity);
 			collisionContext = ((RayTraceContextAccessor) this).getCollisionContext();
 		}
@@ -98,11 +98,11 @@ public final class RayTraceUtil {
 	 * RayTraceContext that will return empty shapes when the visual shape is empty, else the outline shape is returned.
 	 * This allows us to go through glass while avoiding the 1.5 block tall colliders of fences and walls
 	 */
-	static class EmptyVisualOrOutlineRayTraceContext extends RayTraceContext {
+	static class EmptyVisualOrOutlineClipContext extends RayTraceContext {
 
 		protected final ISelectionContext collisionContext;
 
-		public EmptyVisualOrOutlineRayTraceContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
+		public EmptyVisualOrOutlineClipContext(Vector3d from, Vector3d to, FluidMode fluidMode, @Nullable Entity entity) {
 			super(from, to, BlockMode.OUTLINE, fluidMode, entity);
 			collisionContext = ((RayTraceContextAccessor) this).getCollisionContext();
 		}

@@ -17,7 +17,7 @@ public final class PehkuiCompat {
 		Optional<? extends ModContainer> optional = ModList.get().getModContainerById("pehkui");
 		if (optional.isPresent()) {
 			IModInfo info = optional.get().getModInfo();
-			CombatCommonsMod.LOGGER.debug(MarkerManager.getMarker("Compat"), "setting up compatibility for mod {} ({})", info.getDisplayName(), info.getVersion());
+			CombatCommonsMod.LOGGER.info(MarkerManager.getMarker("Compat"), "setting up compatibility for mod {} ({})", info.getDisplayName(), info.getVersion());
 			scaleUtil = new PehkuiScaleUtil();
 		}
 	}

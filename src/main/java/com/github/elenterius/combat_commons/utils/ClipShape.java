@@ -1,5 +1,7 @@
 package com.github.elenterius.combat_commons.utils;
 
+import com.github.elenterius.combat_commons.utils.RayTraceUtil.EmptyColliderOrOutlineClipContext;
+import com.github.elenterius.combat_commons.utils.RayTraceUtil.EmptyVisualOrOutlineClipContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.vector.Vector3d;
@@ -15,16 +17,16 @@ import net.minecraft.util.math.vector.Vector3d;
  * 	(some blocks are visually empty (Glass) or bigger (SoulSand) --> the ray will go through Glass)</pre>
  * COLLIDER: <pre>	use collision voxel shape of block (plants have an empty collider, fences/walls have a 1.5 blocks tall one)</pre>
  */
-public enum RayTraceMode {
+public enum ClipShape {
 	OUTLINE((startPos, endPos, fluidMode, entity) -> new RayTraceContext(startPos, endPos, RayTraceContext.BlockMode.OUTLINE, fluidMode, entity)),
-	EMPTY_COLLIDER_OR_OUTLINE(RayTraceUtil.EmptyColliderOrOutlineRayTraceContext::new),
-	EMPTY_VISUAL_OR_OUTLINE(RayTraceUtil.EmptyVisualOrOutlineRayTraceContext::new),
+	EMPTY_COLLIDER_OR_OUTLINE(EmptyColliderOrOutlineClipContext::new),
+	EMPTY_VISUAL_OR_OUTLINE(EmptyVisualOrOutlineClipContext::new),
 	COLLIDER((startPos, endPos, fluidMode, entity) -> new RayTraceContext(startPos, endPos, RayTraceContext.BlockMode.COLLIDER, fluidMode, entity)),
 	VISUAL((startPos, endPos, fluidMode, entity) -> new RayTraceContext(startPos, endPos, RayTraceContext.BlockMode.VISUAL, fluidMode, entity));
 
-	private final IRayTraceContextFactory factory;
+	private final IClipContextFactory factory;
 
-	RayTraceMode(IRayTraceContextFactory factory) {
+	ClipShape(IClipContextFactory factory) {
 		this.factory = factory;
 	}
 
@@ -34,6 +36,6 @@ public enum RayTraceMode {
 
 }
 
-interface IRayTraceContextFactory {
+interface IClipContextFactory {
 	RayTraceContext create(Vector3d startPos, Vector3d endPos, RayTraceContext.FluidMode fluidMode, Entity entity);
 }

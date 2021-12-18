@@ -2,8 +2,8 @@ package com.github.elenterius.combat_commons.mixin.attack_reach;
 
 import com.github.elenterius.combat_commons.compat.pehkui.PehkuiCompat;
 import com.github.elenterius.combat_commons.entity.EntityAttributeUtil;
-import com.github.elenterius.combat_commons.item.IRayTraceModeProvider;
-import com.github.elenterius.combat_commons.utils.RayTraceMode;
+import com.github.elenterius.combat_commons.item.IClipShapeProvider;
+import com.github.elenterius.combat_commons.utils.ClipShape;
 import com.github.elenterius.combat_commons.utils.RayTraceUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -66,13 +66,13 @@ public abstract class GameRendererMixin {
 		if (blockReachDist > 0) {
 
 			ItemStack heldStack = Objects.requireNonNull(minecraft.player).getMainHandItem();
-			if (heldStack.getItem() instanceof IRayTraceModeProvider) {
-				IRayTraceModeProvider provider = (IRayTraceModeProvider) heldStack.getItem();
-				RayTraceContext.FluidMode fluidMode = provider.getRayTraceFluidModeForPickBlock(heldStack, minecraft.player);
-				return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, RayTraceMode.OUTLINE, fluidMode);
+			if (heldStack.getItem() instanceof IClipShapeProvider) {
+				IClipShapeProvider provider = (IClipShapeProvider) heldStack.getItem();
+				RayTraceContext.FluidMode fluid = provider.getClipFluidModeForPickBlock(heldStack, minecraft.player);
+				return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, ClipShape.OUTLINE, fluid);
 			}
 
-			return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, RayTraceMode.OUTLINE, rayTraceFluids);
+			return RayTraceUtil.pickBlock(camera, partialTicks, blockReachDist, ClipShape.OUTLINE, rayTraceFluids);
 		}
 		else {
 			//prevent the hitting of any block
@@ -96,10 +96,10 @@ public abstract class GameRendererMixin {
 
 		RayTraceResult hitResult;
 		ItemStack heldStack = Objects.requireNonNull(minecraft.player).getMainHandItem();
-		if (heldStack.getItem() instanceof IRayTraceModeProvider) {
-			IRayTraceModeProvider provider = (IRayTraceModeProvider) heldStack.getItem();
-			RayTraceMode rayTraceMode = provider.getRayTraceModeForPickEntity(heldStack, minecraft.player);
-			RayTraceContext.FluidMode fluidMode = provider.getRayTraceFluidModeForPickEntity(heldStack, minecraft.player);
+		if (heldStack.getItem() instanceof IClipShapeProvider) {
+			IClipShapeProvider provider = (IClipShapeProvider) heldStack.getItem();
+			ClipShape clipShape = provider.getClipShapeForPickEntity(heldStack, minecraft.player);
+			RayTraceContext.FluidMode fluid = provider.getClipFluidForPickEntity(heldStack, minecraft.player);
 
 			/*
 			 * In COLLIDER BlockMode:
@@ -107,10 +107,10 @@ public abstract class GameRendererMixin {
 			 * >>> This is proper behavior because block reach determines what blocks can be interacted with,
 			 * >>> so any blocks outside the block reach shouldn't be able to be targeted & interacted with when the attack ray trace is done
 			 * */
-			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, rayTraceMode, fluidMode);
+			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, clipShape, fluid);
 		}
 		else {
-			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, RayTraceMode.OUTLINE, false);
+			hitResult = RayTraceUtil.pickBlock(camera, partialTicks, maxAttackReachDist, ClipShape.OUTLINE, false);
 		}
 
 		if (hitResult.getType() != RayTraceResult.Type.MISS) {
