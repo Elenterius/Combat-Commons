@@ -6,6 +6,7 @@
   "refmap": "combat_commons.refmap.json",
   "mixins": [
     "ClipContextAccessor",
+    "ItemStackMixin",
     "attack_reach.PlayerEntityMixin",
     "attack_reach.ServerGamePacketListenerMixin"
   ],
