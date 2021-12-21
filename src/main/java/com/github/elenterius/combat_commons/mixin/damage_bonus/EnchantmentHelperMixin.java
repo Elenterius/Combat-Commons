@@ -18,7 +18,7 @@ public abstract class EnchantmentHelperMixin {
 	@Inject(method = "getDamageBonus", at = @At("HEAD"))
 	private static void onGetDamageBonus(ItemStack stack, MobType mobType, CallbackInfoReturnable<Float> cir) {
 		String caller = getCaller();
-		if (!caller.contains("ItemStack#getTooltipLines")) {
+		if (!caller.contains("ItemStack#getTooltipLines") && !caller.contains("combat_commons")) {
 			CombatCommonsMod.LOGGER.warn("EnchantmentHelper#getDamageBonus was called by {}", caller);
 		}
 	}

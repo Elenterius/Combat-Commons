@@ -44,6 +44,7 @@ public class TestMod {
 			for (Supplier<List<ItemStack>> supplier : ITEM_GROUP_ITEM_SUPPLIERS) {
 				items.addAll(supplier.get());
 			}
+			items.addAll(EnchantmentStuff.getItemGroupItems());
 		}
 	};
 
