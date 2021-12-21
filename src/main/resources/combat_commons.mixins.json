@@ -8,7 +8,11 @@
     "ClipContextAccessor",
     "ItemStackMixin",
     "attack_reach.PlayerEntityMixin",
-    "attack_reach.ServerGamePacketListenerMixin"
+    "attack_reach.ServerGamePacketListenerMixin",
+    "damage_bonus.EnchantmentHelperMixin",
+    "damage_bonus.GetDamageBonusMixins$MobEntityMixin",
+    "damage_bonus.GetDamageBonusMixins$PlayerEntityMixin",
+    "damage_bonus.GetDamageBonusMixins$TridentEntityMixin"
   ],
   "client": [
     "attack_reach.GameRendererMixin"
