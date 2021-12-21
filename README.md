@@ -1,10 +1,10 @@
 # Combat-Commons
+[![](https://jitpack.io/v/Elenterius/Combat-Commons.svg)](https://jitpack.io/#Elenterius/Combat-Commons)
+[![](https://cf.way2muchnoise.eu/versions/For%20Minecraft_557441_all.svg)](https://www.curseforge.com/minecraft/mc-mods/combat-commons)
 
 Combat Commons is a library mod for Forge Minecraft that provides modifiable attack reach and other utilities related combat for other mod developers.
 
 ### Maven
-
-[![](https://jitpack.io/v/Elenterius/Combat-Commons.svg)](https://jitpack.io/#Elenterius/Combat-Commons)
 
 ```groovy
 repositories {
@@ -22,6 +22,11 @@ At the moment many mods provide their own solution to exteding the players attac
 
 ## Current Features
 
+- Attack Reach Attribute
+- Enchantments that apply Attribute Modifiers
+- Enchantments that have an `Entity` sensitive #getExtraDamage method
+
+## Implementation Details
 ### Separate Attack Reach Attribute
 
 - independent of `block_reach` (as proposed in the abandoned forge pull request #7808)
